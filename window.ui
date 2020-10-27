@@ -109,7 +109,14 @@
      </layout>
     </item>
     <item>
-     <widget class="QListWidget" name="files"/>
+     <widget class="QTableView" name="index">
+      <property name="showGrid">
+       <bool>false</bool>
+      </property>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+     </widget>
     </item>
     <item>
      <widget class="QPlainTextEdit" name="status">
@@ -158,7 +165,6 @@
   <tabstop>port</tabstop>
   <tabstop>username</tabstop>
   <tabstop>password</tabstop>
-  <tabstop>files</tabstop>
   <tabstop>status</tabstop>
  </tabstops>
  <resources/>
