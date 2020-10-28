@@ -22,6 +22,10 @@ def print_error(e):
     sys.stdout.write('\n')
 
 
+def path_join(first, second):
+    return first.rstrip('/') + '/' + second.lstrip('/')
+
+
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -69,6 +73,7 @@ class Window(QMainWindow):
             else:
                 self.send(f'CWD {dirname}')
             self.recv()
+            self.pwd()
             self.transfer('LIST', self.recvList)
         except:
             QMessageBox.critical(self, 'Error', 'Failed to enter folder.')
@@ -102,10 +107,23 @@ class Window(QMainWindow):
     def get(self, remotePath=None):
         if remotePath is None:
             remotePath = self.target.text()
-        dlg = QFileDialog(self, 'Save as')
-        # dlg.selectFile(os.path.basename(remotePath))
-        if dlg.exec() == QDialog.Accepted:
-            localPath = dlg.selectedFiles()[0]
+        if not self.localDir.text():
+            dirname = QFileDialog.getExistingDirectory(self, 'Choose download location')
+            if not dirname:
+                return
+            self.localDir.setText(dirname)
+            self.localDir.repaint()
+        if self.localDir.text():
+            localPath = path_join(self.localDir.text(), os.path.basename(remotePath))
+            if os.path.isfile(localPath):
+                args = [
+                    'File already exists. Overwrite?',
+                    QMessageBox.Ok | QMessageBox.Cancel,
+                    QMessageBox.Cancel
+                ]
+                res = QMessageBox.warning(self, 'Confirm', *args)
+                if not (res & QMessageBox.Ok):
+                    return
             try:
                 self.transfer(f'RETR {remotePath}', self.recvFile, localPath)
                 QMessageBox.information(self, 'Info', 'Download completed.')
@@ -113,25 +131,25 @@ class Window(QMainWindow):
                 QMessageBox.critical(self, 'Error', 'Download failed.')
 
     def put(self):
-        remotePath = self.target.text()
-        dlg = QFileDialog(self, 'Upload')
-        dlg.setFileMode(QFileDialog.ExistingFiles)
-        if dlg.exec() == QDialog.Accepted:
-            localPath = dlg.selectedFiles()[0]
-            try:
-                self.transfer(f'STOR {remotePath}', self.sendFile, localPath)
-                QMessageBox.information(self, 'Info', 'Upload completed.')
-            except:
-                QMessageBox.critical(self, 'Error', 'Upload failed.')
-            try:
-                self.transfer('LIST', self.recvList)
-            except:
-                QMessageBox.critical(self, 'Error', 'Failed to refresh directory.')
+        localPath = QFileDialog.getOpenFileName(self, 'Upload')[0]
+        if not localPath:
+            return
+        remotePath = path_join(self.remoteDir.text(), os.path.basename(localPath))
+        try:
+            self.transfer(f'STOR {remotePath}', self.sendFile, localPath)
+            QMessageBox.information(self, 'Info', 'Upload completed.')
+        except:
+            QMessageBox.critical(self, 'Error', 'Upload failed.')
+        try:
+            self.transfer('LIST', self.recvList)
+        except:
+            QMessageBox.critical(self, 'Error', 'Failed to refresh directory.')
 
     def loginClicked(self):
         self.files.setModel(FilesModel())
         try:
             self.login()
+            self.pwd()
             self.transfer('LIST', self.recvList)
         except Exception as e:
             print_error(e)
@@ -176,6 +194,10 @@ class Window(QMainWindow):
             self.sess.close()
             self.sess = None
             raise
+
+    def pwd(self):
+        self.send('PWD')
+        self.remoteDir.setText(re.findall(r'"([^"]+)"', self.recv())[0])
 
     def transfer(self, req, callback, *args):
         if not self.actionPassive.isChecked():
