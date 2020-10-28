@@ -38,7 +38,6 @@ class Window(QMainWindow):
         self.buttonLogin.clicked.connect(self.loginClicked)
         self.files.clicked.connect(self.setItemName)
         self.files.doubleClicked.connect(self.access)
-        self.buttonChdir.clicked.connect(lambda: self.chdir())
         self.buttonMkdir.clicked.connect(self.mkdir)
         self.buttonRmdir.clicked.connect(self.rmdir)
         self.buttonRename.clicked.connect(self.rename)
@@ -50,7 +49,7 @@ class Window(QMainWindow):
         self.password.setText('cat')
 
     def setItemName(self, index):
-        self.itemName.setText(self.files.model()[index.row(), 0])
+        self.target.setText(self.files.model()[index.row(), 0])
 
     def access(self, index):
         model = self.files.model()
@@ -63,7 +62,7 @@ class Window(QMainWindow):
 
     def chdir(self, dirname=None):
         if dirname is None:
-            dirname = self.itemName.text()
+            dirname = self.target.text()
         try:
             if dirname == '..':
                 self.send('CDUP')
@@ -76,7 +75,7 @@ class Window(QMainWindow):
 
     def mkdir(self):
         try:
-            self.send(f'MKD {self.itemName.text()}')
+            self.send(f'MKD {self.target.text()}')
             self.recv()
             self.transfer('LIST', self.recvList)
         except:
@@ -84,7 +83,7 @@ class Window(QMainWindow):
 
     def rmdir(self):
         try:
-            self.send(f'RMD {self.itemName.text()}')
+            self.send(f'RMD {self.target.text()}')
             self.recv()
             self.transfer('LIST', self.recvList)
         except:
@@ -92,7 +91,7 @@ class Window(QMainWindow):
 
     def rename(self):
         try:
-            self.send(f'RNFR {self.itemName.text()}')
+            self.send(f'RNFR {self.target.text()}')
             self.recv()
             self.send(f'RNTO {self.newName.text()}')
             self.recv()
@@ -102,7 +101,7 @@ class Window(QMainWindow):
 
     def get(self, remotePath=None):
         if remotePath is None:
-            remotePath = self.itemName.text()
+            remotePath = self.target.text()
         dlg = QFileDialog(self, 'Save as')
         # dlg.selectFile(os.path.basename(remotePath))
         if dlg.exec() == QDialog.Accepted:
@@ -114,7 +113,7 @@ class Window(QMainWindow):
                 QMessageBox.critical(self, 'Error', 'Download failed.')
 
     def put(self):
-        remotePath = self.itemName.text()
+        remotePath = self.target.text()
         dlg = QFileDialog(self, 'Upload')
         dlg.setFileMode(QFileDialog.ExistingFiles)
         if dlg.exec() == QDialog.Accepted:
@@ -225,7 +224,7 @@ class Window(QMainWindow):
         except ValueError:
             msg = msg.decode(encoding='latin1')
         self.files.setModel(FilesModel(FTPParser().parse(msg.splitlines())))
-        self.itemName.setText('')
+        self.target.setText('')
         self.newName.setText('')
 
     def recvFile(self, data, filename):

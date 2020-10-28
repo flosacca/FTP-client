@@ -20,7 +20,7 @@
      <pointsize>12</pointsize>
     </font>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <property name="leftMargin">
      <number>9</number>
     </property>
@@ -38,7 +38,7 @@
       <property name="title">
        <string/>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_1">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <layout class="QHBoxLayout" name="layoutUri">
          <item>
@@ -124,52 +124,69 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <layout class="QHBoxLayout" name="layoutNames">
-         <item>
-          <widget class="QLabel" name="labelItemName">
+        <layout class="QGridLayout" name="layoutPaths">
+         <item row="1" column="0">
+          <widget class="QLabel" name="labelLocal">
            <property name="text">
-            <string>Item Name</string>
+            <string>Local Directory</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="remoteDir"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="labelRemote">
+           <property name="text">
+            <string>Remote Directory</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLineEdit" name="localDir">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="buttonPut">
+           <property name="text">
+            <string>Upload</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QPushButton" name="buttonGet">
+           <property name="text">
+            <string>Download</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="layoutTarget">
+         <item>
+          <widget class="QLabel" name="labelTarget">
+           <property name="text">
+            <string>Target</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="itemName"/>
-         </item>
-         <item>
-          <widget class="QLabel" name="labelNewName">
-           <property name="text">
-            <string>New Name</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="newName"/>
+          <widget class="QLineEdit" name="target"/>
          </item>
         </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="layoutOperations">
-         <item>
-          <widget class="QPushButton" name="buttonChdir">
-           <property name="text">
-            <string>Enter Folder</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="buttonGet">
-           <property name="text">
-            <string>Download...</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="buttonPut">
-           <property name="text">
-            <string>Upload...</string>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QPushButton" name="buttonMkdir">
            <property name="text">
@@ -183,6 +200,9 @@
             <string>Remove Folder</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="newName"/>
          </item>
          <item>
           <widget class="QPushButton" name="buttonRename">
@@ -240,14 +260,6 @@
   <tabstop>username</tabstop>
   <tabstop>password</tabstop>
   <tabstop>buttonLogin</tabstop>
-  <tabstop>itemName</tabstop>
-  <tabstop>newName</tabstop>
-  <tabstop>buttonChdir</tabstop>
-  <tabstop>buttonGet</tabstop>
-  <tabstop>buttonPut</tabstop>
-  <tabstop>buttonMkdir</tabstop>
-  <tabstop>buttonRmdir</tabstop>
-  <tabstop>buttonRename</tabstop>
   <tabstop>files</tabstop>
  </tabstops>
  <resources/>
