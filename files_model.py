@@ -1,8 +1,10 @@
 from datetime import datetime
-
 from humanize import naturalsize
 
 from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
+import icons
 
 
 class FilesModel(QAbstractTableModel):
@@ -35,12 +37,20 @@ class FilesModel(QAbstractTableModel):
         return (name, size, time, isdir)
 
     def data(self, index, role=Qt.DisplayRole):
+        i = index.row()
+        j = index.column()
+
         if role == Qt.TextAlignmentRole:
             return Qt.AlignLeft | Qt.AlignVCenter
 
-        if role == Qt.DisplayRole:
-            i = index.row()
-            j = index.column()
+        elif role == Qt.DecorationRole:
+            if j == 0:
+                if self.rowData(i)[3]:
+                    return QIcon(':/shell32_4.ico')
+                else:
+                    return QIcon(':/shell32_1.ico')
+
+        elif role == Qt.DisplayRole:
             return self.rowData(i)[j]
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -48,7 +58,7 @@ class FilesModel(QAbstractTableModel):
             if role == Qt.TextAlignmentRole:
                 return Qt.AlignLeft | Qt.AlignVCenter
 
-            if role == Qt.DisplayRole:
+            elif role == Qt.DisplayRole:
                 if section == 0:
                     return 'Name'
                 if section == 1:

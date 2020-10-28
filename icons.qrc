@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/">
+    <file>./shell32_1.ico</file>
+    <file>./shell32_4.ico</file>
+  </qresource>
+</RCC>

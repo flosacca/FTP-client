@@ -2,7 +2,6 @@ import sys
 import os
 import re
 from socket import *
-
 from ftpparser import FTPParser
 
 from PyQt5 import uic
