@@ -11,31 +11,14 @@ from PyQt5.QtWidgets import *
 
 from files_model import *
 
+BUFFER_SIZE = 4096
+
 
 def print_error(e):
-    print(f'{type(e).__name__}: {str(e)}')
-
-
-def ftpsend(client, msg):
-    msg += '\r\n'
-    sys.stdout.write(msg)
-    client.sendall(msg.encode())
-
-
-def ftprecv(client):
-    msg = b''
-    n = 4096
-    while True:
-        res = client.recv(n)
-        msg += res
-        if len(res) < n:
-            break
-    try:
-        msg = msg.decode()
-    except ValueError:
-        msg = msg.decode(encoding='latin1')
-    sys.stdout.write(msg)
-    return msg
+    sys.stdout.write(type(e).__name__)
+    if str(e):
+        sys.stdout.write(f': {str(e)}')
+    sys.stdout.write('\n')
 
 
 class Window(QMainWindow):
@@ -58,12 +41,20 @@ class Window(QMainWindow):
         self.password.setText('cat')
 
     def send(self, msg):
-        ftpsend(self.sess, msg)
+        msg += '\r\n'
+        sys.stdout.write(msg)
+        self.sess.sendall(msg.encode())
 
     def recv(self):
-        msg = ftprecv(self.sess)
-        code = msg.splitlines()[-1].split()[0]
-        assert int(code[0]) in range(1, 4)
+        msg = b''
+        while True:
+            msg += self.sess.recv(BUFFER_SIZE)
+            if msg[-1] == 10:
+                break
+        msg = msg.decode()
+        sys.stdout.write(msg)
+        code = int(msg.splitlines()[-1].split()[0])
+        assert code in range(100, 400)
         return msg
 
     def login(self):
@@ -80,10 +71,9 @@ class Window(QMainWindow):
             self.send('TYPE I')
             self.recv()
         except Exception as e:
-            print_error(e)
-            print('login failed')
             self.sess.close()
             self.sess = None
+            raise
 
     def transfer(self, req, callback):
         if not self.actionPassive.isChecked():
@@ -121,14 +111,26 @@ class Window(QMainWindow):
         self.recv()
 
     def recvList(self, data):
-        self.index.setModel(FilesModel(FTPParser().parse(ftprecv(data).splitlines())))
+        msg = b''
+        while True:
+            res = data.recv(BUFFER_SIZE)
+            msg += res
+            if len(res) < BUFFER_SIZE:
+                break
+        try:
+            msg = msg.decode()
+        except ValueError:
+            msg = msg.decode(encoding='latin1')
+        self.index.setModel(FilesModel(FTPParser().parse(msg.splitlines())))
 
     def loginClicked(self):
         try:
+            self.index.setModel(FilesModel())
             self.login()
             self.transfer('LIST', self.recvList)
         except Exception as e:
             print_error(e)
+            QMessageBox.critical(self, 'Error', 'Login failed.')
 
 
 if __name__ == '__main__':
