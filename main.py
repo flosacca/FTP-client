@@ -44,6 +44,7 @@ class Window(QMainWindow):
         self.sess = None
         uic.loadUi('window.ui', self)
 
+        self.index.setFocus()
         self.index.setModel(FilesModel())
         header = self.index.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
