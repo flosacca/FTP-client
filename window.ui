@@ -34,9 +34,9 @@
      <number>9</number>
     </property>
     <item>
-     <layout class="QHBoxLayout" name="layout_uri">
+     <layout class="QHBoxLayout" name="layoutUri">
       <item>
-       <widget class="QLabel" name="label_host">
+       <widget class="QLabel" name="labelHost">
         <property name="text">
          <string>Host</string>
         </property>
@@ -46,7 +46,7 @@
        <widget class="QLineEdit" name="host"/>
       </item>
       <item>
-       <widget class="QLabel" name="label_port">
+       <widget class="QLabel" name="labelPort">
         <property name="text">
          <string>Port</string>
         </property>
@@ -74,9 +74,9 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="layout_auth">
+     <layout class="QHBoxLayout" name="layoutAuth">
       <item>
-       <widget class="QLabel" name="label_username">
+       <widget class="QLabel" name="labelUsername">
         <property name="text">
          <string>Username</string>
         </property>
@@ -86,7 +86,7 @@
        <widget class="QLineEdit" name="username"/>
       </item>
       <item>
-       <widget class="QLabel" name="label_password">
+       <widget class="QLabel" name="labelPassword">
         <property name="text">
          <string>Password</string>
         </property>
@@ -100,7 +100,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="login">
+       <widget class="QPushButton" name="buttonLogin">
         <property name="text">
          <string>Login</string>
         </property>
@@ -142,15 +142,15 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_options">
+   <widget class="QMenu" name="menuOptions">
     <property name="title">
      <string>&amp;Options</string>
     </property>
-    <addaction name="action_passive"/>
+    <addaction name="actionPassive"/>
    </widget>
-   <addaction name="menu_options"/>
+   <addaction name="menuOptions"/>
   </widget>
-  <action name="action_passive">
+  <action name="actionPassive">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -160,7 +160,7 @@
   </action>
  </widget>
  <tabstops>
-  <tabstop>login</tabstop>
+  <tabstop>buttonLogin</tabstop>
   <tabstop>host</tabstop>
   <tabstop>port</tabstop>
   <tabstop>username</tabstop>
