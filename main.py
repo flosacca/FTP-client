@@ -47,10 +47,6 @@ class Window(QMainWindow):
         self.buttonGet.clicked.connect(lambda: self.get())
         self.buttonPut.clicked.connect(self.put)
 
-        self.host.setText('199.255.99.141')
-        self.username.setText('cat')
-        self.password.setText('cat')
-
     def setItemName(self, index):
         self.target.setText(self.files.model()[index.row(), 0])
 
