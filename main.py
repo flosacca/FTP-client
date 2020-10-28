@@ -1,4 +1,5 @@
 import sys
+import os
 import re
 from socket import *
 
@@ -37,10 +38,12 @@ class Window(QMainWindow):
         self.buttonLogin.clicked.connect(self.loginClicked)
         self.files.clicked.connect(self.setItemName)
         self.files.doubleClicked.connect(self.access)
-        self.buttonChdir.clicked.connect(self.chdir)
+        self.buttonChdir.clicked.connect(lambda: self.chdir())
         self.buttonMkdir.clicked.connect(self.mkdir)
         self.buttonRmdir.clicked.connect(self.rmdir)
         self.buttonRename.clicked.connect(self.rename)
+        self.buttonGet.clicked.connect(lambda: self.get())
+        self.buttonPut.clicked.connect(self.put)
 
         self.host.setText('199.255.99.141')
         self.username.setText('cat')
@@ -56,16 +59,16 @@ class Window(QMainWindow):
         if isdir:
             self.chdir(name)
         else:
-            pass
+            self.get(name)
 
-    def chdir(self, name=None):
-        if name is None:
-            name = self.itemName.text()
+    def chdir(self, dirname=None):
+        if dirname is None:
+            dirname = self.itemName.text()
         try:
-            if name == '..':
+            if dirname == '..':
                 self.send('CDUP')
             else:
-                self.send(f'CWD {name}')
+                self.send(f'CWD {dirname}')
             self.recv()
             self.transfer('LIST', self.recvList)
         except:
@@ -96,6 +99,35 @@ class Window(QMainWindow):
             self.transfer('LIST', self.recvList)
         except:
             QMessageBox.critical(self, 'Error', 'Failed to rename item.')
+
+    def get(self, remotePath=None):
+        if remotePath is None:
+            remotePath = self.itemName.text()
+        dlg = QFileDialog(self, 'Save as')
+        # dlg.selectFile(os.path.basename(remotePath))
+        if dlg.exec() == QDialog.Accepted:
+            localPath = dlg.selectedFiles()[0]
+            try:
+                self.transfer(f'RETR {remotePath}', self.recvFile, localPath)
+                QMessageBox.information(self, 'Info', 'Download completed.')
+            except:
+                QMessageBox.critical(self, 'Error', 'Download failed.')
+
+    def put(self):
+        remotePath = self.itemName.text()
+        dlg = QFileDialog(self, 'Upload')
+        dlg.setFileMode(QFileDialog.ExistingFiles)
+        if dlg.exec() == QDialog.Accepted:
+            localPath = dlg.selectedFiles()[0]
+            try:
+                self.transfer(f'STOR {remotePath}', self.sendFile, localPath)
+                QMessageBox.information(self, 'Info', 'Upload completed.')
+            except:
+                QMessageBox.critical(self, 'Error', 'Upload failed.')
+            try:
+                self.transfer('LIST', self.recvList)
+            except:
+                QMessageBox.critical(self, 'Error', 'Failed to refresh directory.')
 
     def loginClicked(self):
         self.files.setModel(FilesModel())
@@ -146,7 +178,7 @@ class Window(QMainWindow):
             self.sess = None
             raise
 
-    def transfer(self, req, callback):
+    def transfer(self, req, callback, *args):
         if not self.actionPassive.isChecked():
             server = socket(AF_INET, SOCK_STREAM)
             server.bind(('', 0))
@@ -160,7 +192,7 @@ class Window(QMainWindow):
                 self.recv()
                 data = server.accept()[0]
                 try:
-                    callback(data)
+                    callback(data, *args)
                 finally:
                     data.close()
             finally:
@@ -176,7 +208,7 @@ class Window(QMainWindow):
             try:
                 self.send(req)
                 self.recv()
-                callback(data)
+                callback(data, *args)
             finally:
                 data.close()
         self.recv()
@@ -184,10 +216,10 @@ class Window(QMainWindow):
     def recvList(self, data):
         msg = b''
         while True:
-            res = data.recv(BUFFER_SIZE)
-            msg += res
-            if len(res) < BUFFER_SIZE:
+            buf = data.recv(BUFFER_SIZE)
+            if not buf:
                 break
+            msg += buf
         try:
             msg = msg.decode()
         except ValueError:
@@ -195,6 +227,22 @@ class Window(QMainWindow):
         self.files.setModel(FilesModel(FTPParser().parse(msg.splitlines())))
         self.itemName.setText('')
         self.newName.setText('')
+
+    def recvFile(self, data, filename):
+        with open(filename, 'wb') as f:
+            while True:
+                buf = data.recv(BUFFER_SIZE)
+                if not buf:
+                    break
+                f.write(buf)
+
+    def sendFile(self, data, filename):
+        with open(filename, 'rb') as f:
+            while True:
+                buf = f.read(BUFFER_SIZE)
+                if not buf:
+                    break
+                data.sendall(buf)
 
 
 if __name__ == '__main__':
