@@ -6,18 +6,22 @@ from PyQt5.QtCore import *
 
 
 class FilesModel(QAbstractTableModel):
-    def __init__(self, items=[]):
+    def __init__(self, items=None):
         super().__init__()
-        items.sort(key=lambda row:-row[3])
+        if items is not None:
+            items.sort(key=lambda row:-row[3])
         self.items = items
+
+    def __getitem__(self, index):
+        return self.rowData(index[0])[index[1]]
 
     def columnCount(self, parent):
         return 3
 
     def rowCount(self, parent):
-        if self.items:
-            return len(self.items) + 1
-        return 0
+        if self.items is None:
+            return 0
+        return len(self.items) + 1
 
     def rowData(self, row):
         if row == 0:
@@ -30,7 +34,7 @@ class FilesModel(QAbstractTableModel):
         time = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M')
         return (name, size, time, isdir)
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.DisplayRole):
         if role == Qt.TextAlignmentRole:
             return Qt.AlignLeft | Qt.AlignVCenter
 
@@ -39,7 +43,7 @@ class FilesModel(QAbstractTableModel):
             j = index.column()
             return self.rowData(i)[j]
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal:
             if role == Qt.TextAlignmentRole:
                 return Qt.AlignLeft | Qt.AlignVCenter

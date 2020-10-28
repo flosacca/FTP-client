@@ -27,18 +27,84 @@ class Window(QMainWindow):
         self.sess = None
         uic.loadUi('window.ui', self)
 
-        self.index.setFocus()
-        self.index.setModel(FilesModel())
-        header = self.index.horizontalHeader()
+        self.files.setFocus()
+        self.files.setModel(FilesModel())
+        header = self.files.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
-        self.index.setColumnWidth(1, 100)
-        self.index.setColumnWidth(2, 180)
+        self.files.setColumnWidth(1, 100)
+        self.files.setColumnWidth(2, 180)
 
         self.buttonLogin.clicked.connect(self.loginClicked)
+        self.files.clicked.connect(self.setItemName)
+        self.files.doubleClicked.connect(self.access)
+        self.buttonChdir.clicked.connect(self.chdir)
+        self.buttonMkdir.clicked.connect(self.mkdir)
+        self.buttonRmdir.clicked.connect(self.rmdir)
+        self.buttonRename.clicked.connect(self.rename)
 
         self.host.setText('199.255.99.141')
         self.username.setText('cat')
         self.password.setText('cat')
+
+    def setItemName(self, index):
+        self.itemName.setText(self.files.model()[index.row(), 0])
+
+    def access(self, index):
+        model = self.files.model()
+        name = model[index.row(), 0]
+        isdir = model[index.row(), 3]
+        if isdir:
+            self.chdir(name)
+        else:
+            pass
+
+    def chdir(self, name=None):
+        if name is None:
+            name = self.itemName.text()
+        try:
+            if name == '..':
+                self.send('CDUP')
+            else:
+                self.send(f'CWD {name}')
+            self.recv()
+            self.transfer('LIST', self.recvList)
+        except:
+            QMessageBox.critical(self, 'Error', 'Failed to enter folder.')
+
+    def mkdir(self):
+        try:
+            self.send(f'MKD {self.itemName.text()}')
+            self.recv()
+            self.transfer('LIST', self.recvList)
+        except:
+            QMessageBox.critical(self, 'Error', 'Failed to create folder.')
+
+    def rmdir(self):
+        try:
+            self.send(f'RMD {self.itemName.text()}')
+            self.recv()
+            self.transfer('LIST', self.recvList)
+        except:
+            QMessageBox.critical(self, 'Error', 'Failed to remove folder.')
+
+    def rename(self):
+        try:
+            self.send(f'RNFR {self.itemName.text()}')
+            self.recv()
+            self.send(f'RNTO {self.newName.text()}')
+            self.recv()
+            self.transfer('LIST', self.recvList)
+        except:
+            QMessageBox.critical(self, 'Error', 'Failed to rename item.')
+
+    def loginClicked(self):
+        self.files.setModel(FilesModel())
+        try:
+            self.login()
+            self.transfer('LIST', self.recvList)
+        except Exception as e:
+            print_error(e)
+            QMessageBox.critical(self, 'Error', 'Login failed.')
 
     def send(self, msg):
         msg += '\r\n'
@@ -46,16 +112,21 @@ class Window(QMainWindow):
         self.sess.sendall(msg.encode())
 
     def recv(self):
-        msg = b''
+        lines = []
         while True:
-            msg += self.sess.recv(BUFFER_SIZE)
-            if msg[-1] == 10:
+            msg = b''
+            while True:
+                msg += self.sess.recv(BUFFER_SIZE)
+                if msg[-1] == 10:
+                    break
+            msg = msg.decode()
+            sys.stdout.write(msg)
+            lines.extend(msg.splitlines())
+            if re.search(r'^\d{3} ', lines[-1]):
                 break
-        msg = msg.decode()
-        sys.stdout.write(msg)
-        code = int(msg.splitlines()[-1].split()[0])
+        code = int(lines[-1].split()[0])
         assert code in range(100, 400)
-        return msg
+        return lines[-1]
 
     def login(self):
         host = self.host.text()
@@ -121,16 +192,9 @@ class Window(QMainWindow):
             msg = msg.decode()
         except ValueError:
             msg = msg.decode(encoding='latin1')
-        self.index.setModel(FilesModel(FTPParser().parse(msg.splitlines())))
-
-    def loginClicked(self):
-        try:
-            self.index.setModel(FilesModel())
-            self.login()
-            self.transfer('LIST', self.recvList)
-        except Exception as e:
-            print_error(e)
-            QMessageBox.critical(self, 'Error', 'Login failed.')
+        self.files.setModel(FilesModel(FTPParser().parse(msg.splitlines())))
+        self.itemName.setText('')
+        self.newName.setText('')
 
 
 if __name__ == '__main__':
