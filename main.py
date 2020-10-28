@@ -4,11 +4,11 @@ import re
 from socket import *
 from ftpparser import FTPParser
 
-from PyQt5 import uic
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+from window import *
 from files_model import *
 
 BUFFER_SIZE = 4096
@@ -25,11 +25,11 @@ def path_join(first, second):
     return first.rstrip('/') + '/' + second.lstrip('/')
 
 
-class Window(QMainWindow):
+class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.sess = None
-        uic.loadUi('window.ui', self)
+        self.setupUi(self)
 
         self.files.setFocus()
         self.files.setModel(FilesModel())
@@ -263,6 +263,6 @@ class Window(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    w = Window()
+    w = MainWindow()
     w.show()
     sys.exit(app.exec_())
